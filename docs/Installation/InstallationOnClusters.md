@@ -22,9 +22,9 @@ want to load the modules, source the shell file for your system and run
 5. If you haven't already, choose where you want to install the dependencies,
    e.g. into `SPECTRE_DEPS` and run `spectre_setup_modules $SPECTRE_DEPS`. This
    will take a while to finish. Near the end the command will tell you how to
-   load make the modules available by providing a `module use` command. Make
+   make the modules available by providing a `module use` command. Make
    sure you are providing an absolute path to `spectre_setup_modules`.
-6. Run `module use SPECTRE_DEPS/modules`
+6. Run `module use $SPECTRE_DEPS/modules`
 7. Run `spectre_run_cmake`, if you get module loading errors run
    `spectre_unload_modules` and try running `spectre_run_cmake` again. CMake
    should set up successfully.
@@ -36,7 +36,8 @@ want to load the modules, source the shell file for your system and run
 First run `module load bwpy && bwpy-environ`, then follow the general
 instructions using `bluewaters` as the `SYSTEM_TO_RUN_ON`. Note that once the
 installation is completed, you will still need to have this command run in
-order to run SpECTRE.
+order to run SpECTRE. Also note that adding this command to your `.bashrc` may
+cause BlueWaters to hang; you must run this command from the command line.
 
 #### Running tests on BlueWaters
 
