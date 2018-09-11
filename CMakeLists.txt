@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.3.2)
 
 # Fortran below is needed for SPHEREPACK.
 project(SpECTRE VERSION 0.0.0 LANGUAGES CXX C Fortran)
+message("\n\nPYTHONINTERP_FOUND is ${PYTHONINTERP_FOUND}")
+message("\n\nPYTHONEXECUTABLE is ${PYTHON_EXECUTABLE}")
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
