@@ -1,0 +1,392 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - 9513e47c685c00fd0e1af7ea15c5e86c630363b2 - Evolution/DiscontinuousGalerkin/SlopeLimiters/Minmod.hpp</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title"> SpECTRE Documentation Coverage Report</td></tr>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">Evolution/DiscontinuousGalerkin/SlopeLimiters</a> - Minmod.hpp</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+             <td class="headerItem">Commit:</td>
+             <td class="headerValue"><a target="_blank" href="https://github.com/sxs-collaboration/spectre/commit/9513e47c685c00fd0e1af7ea15c5e86c630363b2">9513e47c685c00fd0e1af7ea15c5e86c630363b2</a></td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">30</td>
+            <td class="headerCovTableEntryLo">16.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2018-09-14 06:27:56</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+</td>
+            <td></td>
+          </tr>
+          <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<span class="lineNum">       1 </span>            : // Distributed under the MIT License.
+<span class="lineNum">       2 </span>            : // See LICENSE.txt for details.
+<span class="lineNum">       3 </span>            : 
+<span class="lineNum">       4 </span>            : #pragma once
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &lt;cstddef&gt;
+<span class="lineNum">       7 </span>            : #include &lt;type_traits&gt;
+<span class="lineNum">       8 </span>            : #include &lt;unordered_map&gt;
+<span class="lineNum">       9 </span>            : #include &lt;utility&gt;
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : #include &quot;DataStructures/DataBox/DataBoxTag.hpp&quot;
+<span class="lineNum">      12 </span>            : #include &quot;DataStructures/Tensor/Tensor.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Domain/Element.hpp&quot;  // IWYU pragma: keep
+<span class="lineNum">      14 </span>            : #include &quot;ErrorHandling/Assert.hpp&quot;
+<span class="lineNum">      15 </span>            : #include &quot;NumericalAlgorithms/LinearOperators/MeanValue.hpp&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Options/Options.hpp&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Utilities/ForceInline.hpp&quot;
+<span class="lineNum">      18 </span>            : #include &quot;Utilities/Gsl.hpp&quot;
+<span class="lineNum">      19 </span>            : #include &quot;Utilities/TMPL.hpp&quot;
+<span class="lineNum">      20 </span>            : 
+<span class="lineNum">      21 </span>            : /// \cond
+<span class="lineNum">      22 </span>            : class DataVector;
+<span class="lineNum">      23 </span>            : template &lt;size_t VolumeDim&gt;
+<span class="lineNum">      24 </span>            : class Direction;
+<span class="lineNum">      25 </span>            : template &lt;size_t&gt;
+<span class="lineNum">      26 </span>            : class Mesh;
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : namespace PUP {
+<span class="lineNum">      29 </span>            : class er;
+<span class="lineNum">      30 </span>            : }  // namespace PUP
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : namespace SlopeLimiters {
+<span class="lineNum">      33 </span>            : template &lt;size_t VolumeDim, typename TagsToLimit&gt;
+<span class="lineNum">      34 </span>            : class Minmod;
+<span class="lineNum">      35 </span>            : }  // namespace SlopeLimiters
+<span class="lineNum">      36 </span>            : /// \endcond
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : namespace SlopeLimiters {
+<span class="lineNum">      39 </span>            : /// \ingroup SlopeLimitersGroup
+<span class="lineNum">      40 </span>            : /// \brief Possible types of the minmod slope limiter.
+<span class="lineNum">      41 </span>            : ///
+<span class="lineNum">      42 </span>            : /// \see SlopeLimiters::Minmod
+<span class="lineNum">      43 </span><span class="lineCov">          2 : enum class MinmodType { LambdaPi1, LambdaPiN, Muscl };</span>
+<span class="lineNum">      44 </span>            : }  // namespace SlopeLimiters
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            : namespace Minmod_detail {
+<span class="lineNum">      47 </span>            : // Encodes the return status of the minmod_tvbm function.
+<span class="lineNum">      48 </span>            : struct MinmodResult {
+<span class="lineNum">      49 </span>            :   const double value;
+<span class="lineNum">      50 </span>            :   const bool activated;
+<span class="lineNum">      51 </span>            : };
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span>            : // The TVBM-corrected minmod function, see e.g. Cockburn reference Eq. 2.26.
+<span class="lineNum">      54 </span>            : MinmodResult minmod_tvbm(double a, double b, double c,
+<span class="lineNum">      55 </span>            :                          double tvbm_scale) noexcept;
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            : // Implements the minmod limiter for one Tensor&lt;DataVector&gt;.
+<span class="lineNum">      58 </span>            : //
+<span class="lineNum">      59 </span>            : // The interface is designed to erase the tensor structure information, because
+<span class="lineNum">      60 </span>            : // this way the implementation can be moved out of the header file. This is
+<span class="lineNum">      61 </span>            : // achieved by receiving Tensor&lt;DataVector&gt;::iterators into the tensor to limit,
+<span class="lineNum">      62 </span>            : // and Tensor&lt;double&gt;::iterators into the neighbor tensors.
+<span class="lineNum">      63 </span>            : //
+<span class="lineNum">      64 </span>            : // Note: because the interface erases the tensor structure information, we can
+<span class="lineNum">      65 </span>            : // no longer rely on the compiler to enforce that the local and neighbor tensors
+<span class="lineNum">      66 </span>            : // share the same Structure.
+<span class="lineNum">      67 </span>            : template &lt;size_t VolumeDim&gt;
+<span class="lineNum">      68 </span>            : bool limit_one_tensor(
+<span class="lineNum">      69 </span>            :     gsl::not_null&lt;DataVector*&gt; tensor_begin,
+<span class="lineNum">      70 </span>            :     gsl::not_null&lt;DataVector*&gt; tensor_end,
+<span class="lineNum">      71 </span>            :     const std::unordered_map&lt;Direction&lt;VolumeDim&gt;,
+<span class="lineNum">      72 </span>            :                              gsl::not_null&lt;const double*&gt;&gt;&amp;
+<span class="lineNum">      73 </span>            :         neighbor_tensor_begin,
+<span class="lineNum">      74 </span>            :     const SlopeLimiters::MinmodType&amp; minmod_type, double tvbm_constant,
+<span class="lineNum">      75 </span>            :     const Element&lt;VolumeDim&gt;&amp; element, const Mesh&lt;VolumeDim&gt;&amp; mesh,
+<span class="lineNum">      76 </span>            :     const tnsr::I&lt;DataVector, VolumeDim, Frame::Logical&gt;&amp; logical_coords,
+<span class="lineNum">      77 </span>            :     const tnsr::I&lt;double, VolumeDim&gt;&amp; element_size,
+<span class="lineNum">      78 </span>            :     const std::unordered_map&lt;Direction&lt;VolumeDim&gt;, tnsr::I&lt;double, VolumeDim&gt;&gt;&amp;
+<span class="lineNum">      79 </span>            :         neighbor_sizes) noexcept;
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            : template &lt;typename TensorType&gt;
+<span class="lineNum">      82 </span>            : using tensor_double_from = Tensor&lt;double, typename TensorType::symmetry,
+<span class="lineNum">      83 </span>            :                                   typename TensorType::index_list&gt;;
+<span class="lineNum">      84 </span>            : }  // namespace Minmod_detail
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            : namespace SlopeLimiters {
+<span class="lineNum">      87 </span>            : /// \ingroup SlopeLimitersGroup
+<span class="lineNum">      88 </span>            : /// \brief A generic Minmod slope limiter
+<span class="lineNum">      89 </span>            : ///
+<span class="lineNum">      90 </span>            : /// Implements the minmod-based slope limiter from
+<span class="lineNum">      91 </span>            : /// \ref cockburn_ref &quot;Cockburn (1999)&quot;, Section 2.4.
+<span class="lineNum">      92 </span>            : /// Three types of minmod limiter from the reference are implemented:
+<span class="lineNum">      93 </span>            : /// \f$\Lambda\Pi^1\f$, \f$\Lambda\Pi^N\f$, and MUSCL.
+<span class="lineNum">      94 </span>            : ///
+<span class="lineNum">      95 </span>            : /// This minmod limiter has a generic implementation that can work on an
+<span class="lineNum">      96 </span>            : /// arbitrary set of tensors. The minmod limiting algorithm is applied to each
+<span class="lineNum">      97 </span>            : /// component of each tensor independently. In general, the limiter linearizes
+<span class="lineNum">      98 </span>            : /// the tensors on every DG element, each time it is applied; additionally, the
+<span class="lineNum">      99 </span>            : /// limiter may reduce the spatial slope of some tensor components if the data
+<span class="lineNum">     100 </span>            : /// look like they may contain oscillations.
+<span class="lineNum">     101 </span>            : ///
+<span class="lineNum">     102 </span>            : /// The key features differentiating the three minmod limiter types are:
+<span class="lineNum">     103 </span>            : /// 1. The `Muscl` limiter is the most dissipative; it more aggressively reduces
+<span class="lineNum">     104 </span>            : ///    the slopes of the data. This limiter may better handle strong shocks, but
+<span class="lineNum">     105 </span>            : ///    also produces the most broadening of features.
+<span class="lineNum">     106 </span>            : /// 2. The `LambdaPiN` limiter is the least aggressive; its &quot;troubled cell&quot;
+<span class="lineNum">     107 </span>            : ///    detector tries to avoid limiting in DG elements where the data look
+<span class="lineNum">     108 </span>            : ///    smooth enough. Where `LambdaPiN` is able to avoid limiting, the data are
+<span class="lineNum">     109 </span>            : ///    _not_ linearized, and the post-limiter data are identical to the
+<span class="lineNum">     110 </span>            : ///    pre-limiter data.
+<span class="lineNum">     111 </span>            : /// 3. The `LambdaPi1` limiter is a middle-ground option between the other two.
+<span class="lineNum">     112 </span>            : ///    It does not try to avoid limiting as much as `LambdaPiN`, but it allows
+<span class="lineNum">     113 </span>            : ///    larger slopes in the data than `Muscl`.
+<span class="lineNum">     114 </span>            : ///
+<span class="lineNum">     115 </span>            : /// For all three types of minmod limiter the &quot;total variation bound in the
+<span class="lineNum">     116 </span>            : /// means&quot; (TVBM) correction is implemented, enabling the limiter to avoid
+<span class="lineNum">     117 </span>            : /// limiting away smooth extrema in the solution that would otherwise look like
+<span class="lineNum">     118 </span>            : /// spurious oscillations. The limiter will not reduce the slope (but will still
+<span class="lineNum">     119 </span>            : /// linearize) on elements where the slope is less than \f$m h^2\f$, where
+<span class="lineNum">     120 </span>            : /// \f$m\f$ is the TVBM constant and \f$h\f$ is the size of the DG element.
+<span class="lineNum">     121 </span>            : ///
+<span class="lineNum">     122 </span>            : /// The limiter acts in the `Frame::Logical` coordinates, because in these
+<span class="lineNum">     123 </span>            : /// coordinates it is straightforward to formulate the algorithm. This means the
+<span class="lineNum">     124 </span>            : /// limiter can operate on generic deformed grids. However, if the grid is too
+<span class="lineNum">     125 </span>            : /// strongly deformed, some things can start to break down:
+<span class="lineNum">     126 </span>            : /// 1. When an element is deformed so that the Jacobian (from `Frame::Logical`
+<span class="lineNum">     127 </span>            : ///    to `Frame::Inertial`) varies across the element, then the limiter fails
+<span class="lineNum">     128 </span>            : ///    to be conservative. In other words, the integral of a tensor `u` over the
+<span class="lineNum">     129 </span>            : ///    element will change after the limiter activates on `u`. This error is
+<span class="lineNum">     130 </span>            : ///    typically small.
+<span class="lineNum">     131 </span>            : /// 2. When there is a sudden change in the size of the elements (perhaps at an
+<span class="lineNum">     132 </span>            : ///    h-refinement boundary, or at the boundary between two blocks with very
+<span class="lineNum">     133 </span>            : ///    different mappings), a smooth solution in `Frame::Inertial` can appear
+<span class="lineNum">     134 </span>            : ///    to have a kink in `Frame::Logical`. The Minmod implementation includes
+<span class="lineNum">     135 </span>            : ///    some (untested) tweaks that try to reduce spurious limiter activations
+<span class="lineNum">     136 </span>            : ///    near these fake kinks.
+<span class="lineNum">     137 </span>            : ///
+<span class="lineNum">     138 </span>            : /// The limiter as implemented expects an element to have one neighbor in each
+<span class="lineNum">     139 </span>            : /// direction, and therefore does not support h-refinement.
+<span class="lineNum">     140 </span>            : ///
+<span class="lineNum">     141 </span>            : /// \tparam VolumeDim The number of spatial dimensions.
+<span class="lineNum">     142 </span>            : /// \tparam Tags A typelist of tags specifying the tensors to limit.
+<span class="lineNum">     143 </span>            : ///
+<span class="lineNum">     144 </span>            : /// \anchor cockburn_ref [1] B. Cockburn,
+<span class="lineNum">     145 </span>            : /// Discontinuous Galerkin Methods for Convection-Dominated Problems,
+<span class="lineNum">     146 </span>            : /// [Springer (1999)](https://doi.org/10.1007/978-3-662-03882-6_2)
+<span class="lineNum">     147 </span>            : template &lt;size_t VolumeDim, typename... Tags&gt;
+<span class="lineNum">     148 </span><span class="lineCov">          1 : class Minmod&lt;VolumeDim, tmpl::list&lt;Tags...&gt;&gt; {</span>
+<span class="lineNum">     149 </span>            :  public:
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :   struct Type {</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :     using type = MinmodType;</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;Type of minmod&quot;};</span>
+<span class="lineNum">     153 </span>            :   };
+<span class="lineNum">     154 </span><span class="lineNoCov">          0 :   struct TvbmConstant {</span>
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 :     using type = double;</span>
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :     static type default_value() { return 0.0; }</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :     static type lower_bound() { return 0.0; }</span>
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :     static constexpr OptionString help = {&quot;TVBM constant 'm'&quot;};</span>
+<span class="lineNum">     159 </span>            :   };
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :   using options = tmpl::list&lt;Type, TvbmConstant&gt;;</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :   static constexpr OptionString help = {</span>
+<span class="lineNum">     162 </span>            :       &quot;A minmod-based slope limiter.\n&quot;
+<span class="lineNum">     163 </span>            :       &quot;The different types of minmod are more or less aggressive in trying\n&quot;
+<span class="lineNum">     164 </span>            :       &quot;to reduce slopes. The TVBM correction allows the limiter to ignore\n&quot;
+<span class="lineNum">     165 </span>            :       &quot;'small' slopes, and helps to avoid limiting of smooth extrema in the\n&quot;
+<span class="lineNum">     166 </span>            :       &quot;solution.\n&quot;};
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            :   /// \brief Constuct a Minmod slope limiter
+<span class="lineNum">     169 </span>            :   ///
+<span class="lineNum">     170 </span>            :   /// \param minmod_type The type of Minmod slope limiter.
+<span class="lineNum">     171 </span>            :   /// \param tvbm_constant The value of the TVBM constant (default: 0).
+<span class="lineNum">     172 </span><span class="lineCov">          1 :   explicit Minmod(const MinmodType minmod_type,</span>
+<span class="lineNum">     173 </span>            :                   const double tvbm_constant = 0.0) noexcept
+<span class="lineNum">     174 </span>            :       : minmod_type_(minmod_type), tvbm_constant_(tvbm_constant) {
+<span class="lineNum">     175 </span>            :     ASSERT(tvbm_constant &gt;= 0.0, &quot;The TVBM constant must be non-negative.&quot;);
+<span class="lineNum">     176 </span>            :   }
+<span class="lineNum">     177 </span>            : 
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :   Minmod() noexcept = default;</span>
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :   Minmod(const Minmod&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :   Minmod&amp; operator=(const Minmod&amp; /*rhs*/) = default;</span>
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :   Minmod(Minmod&amp;&amp; /*rhs*/) noexcept = default;</span>
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :   Minmod&amp; operator=(Minmod&amp;&amp; /*rhs*/) noexcept = default;</span>
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :   ~Minmod() = default;</span>
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span>            :   // clang-tidy: google-runtime-references
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :   void pup(PUP::er&amp; p) noexcept {  // NOLINT</span>
+<span class="lineNum">     187 </span>            :     p | minmod_type_;
+<span class="lineNum">     188 </span>            :     p | tvbm_constant_;
+<span class="lineNum">     189 </span>            :   }
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :   const MinmodType&amp; minmod_type() const noexcept { return minmod_type_; }</span>
+<span class="lineNum">     192 </span><span class="lineNoCov">          0 :   const double&amp; tvbm_constant() const noexcept { return tvbm_constant_; }</span>
+<span class="lineNum">     193 </span>            : 
+<span class="lineNum">     194 </span>            :   /// \brief Computes data that must be communicated to neighbor elements.
+<span class="lineNum">     195 </span>            :   ///
+<span class="lineNum">     196 </span>            :   /// The minmod limiter needs only the cell-averaged means of the tensors in
+<span class="lineNum">     197 </span>            :   /// each neighboring DG element. This function computes and packages the cell-
+<span class="lineNum">     198 </span>            :   /// averaged data.
+<span class="lineNum">     199 </span>            :   ///
+<span class="lineNum">     200 </span>            :   /// \param means The cell-averaged means of each tensor.
+<span class="lineNum">     201 </span>            :   /// \param tensors The tensors to be averaged and packaged.
+<span class="lineNum">     202 </span>            :   /// \param mesh The mesh on which the tensor values are measured.
+<span class="lineNum">     203 </span><span class="lineCov">          1 :   void data_for_neighbors(</span>
+<span class="lineNum">     204 </span>            :       const gsl::not_null&lt;std::add_pointer_t&lt;
+<span class="lineNum">     205 </span>            :           Minmod_detail::tensor_double_from&lt;db::item_type&lt;Tags&gt;&gt;&gt;&gt;... means,
+<span class="lineNum">     206 </span>            :       const db::item_type&lt;Tags&gt;&amp;... tensors, const Mesh&lt;VolumeDim&gt;&amp; mesh) const
+<span class="lineNum">     207 </span>            :       noexcept {
+<span class="lineNum">     208 </span>            :     const auto wrap_compute_mean = [&amp;mesh](const auto&amp; mean,
+<span class="lineNum">     209 </span>            :                                            const auto&amp; tensor) noexcept {
+<span class="lineNum">     210 </span>            :       for (size_t i = 0; i &lt; tensor.size(); ++i) {
+<span class="lineNum">     211 </span>            :         (*mean)[i] = mean_value(tensor[i], mesh);
+<span class="lineNum">     212 </span>            :       }
+<span class="lineNum">     213 </span>            :       return '0';
+<span class="lineNum">     214 </span>            :     };
+<span class="lineNum">     215 </span>            :     expand_pack(wrap_compute_mean(means, tensors)...);
+<span class="lineNum">     216 </span>            :   }
+<span class="lineNum">     217 </span>            : 
+<span class="lineNum">     218 </span>            :   /// \brief Limits the solution on the element.
+<span class="lineNum">     219 </span>            :   ///
+<span class="lineNum">     220 </span>            :   /// For each component of each tensor, the limiter will (in general) linearize
+<span class="lineNum">     221 </span>            :   /// the data, then possibly reduce its slope, dimension-by-dimension, until it
+<span class="lineNum">     222 </span>            :   /// no longer looks oscillatory.
+<span class="lineNum">     223 </span>            :   ///
+<span class="lineNum">     224 </span>            :   /// \param tensors The tensors to be limited.
+<span class="lineNum">     225 </span>            :   /// \param neighbor_tensors The tensor cell-averages from each neighbor.
+<span class="lineNum">     226 </span>            :   /// \param element The element on which the tensors to limit live.
+<span class="lineNum">     227 </span>            :   /// \param mesh The mesh on which the tensor values are measured.
+<span class="lineNum">     228 </span>            :   /// \param logical_coords The logical coordinates of the mesh gridpoints.
+<span class="lineNum">     229 </span>            :   /// \param element_size The size of the element, in the inertial coordinates.
+<span class="lineNum">     230 </span>            :   /// \param neighbor_sizes The sizes of the neighboring elements.
+<span class="lineNum">     231 </span>            :   ///
+<span class="lineNum">     232 </span>            :   /// \return whether the limiter modified the solution or not.
+<span class="lineNum">     233 </span>            :   ///
+<span class="lineNum">     234 </span>            :   /// \note The return value is false if the limiter knows it has not modified
+<span class="lineNum">     235 </span>            :   /// the solution. True return values can indicate:
+<span class="lineNum">     236 </span>            :   /// - The solution was limited to reduce the slope, whether by a large factor
+<span class="lineNum">     237 </span>            :   ///   or by a factor only roundoff away from unity.
+<span class="lineNum">     238 </span>            :   /// - The solution was linearized but not limited.
+<span class="lineNum">     239 </span>            :   /// - The solution is identical to the input, if the input was a linear
+<span class="lineNum">     240 </span>            :   ///   function on a higher-order mesh, so that the limiter cannot know that
+<span class="lineNum">     241 </span>            :   ///   the linearization step did not actually modify the data. This is
+<span class="lineNum">     242 </span>            :   ///   somewhat contrived and is unlikely to occur outside of code tests or
+<span class="lineNum">     243 </span>            :   ///   test cases with very clean initial data.
+<span class="lineNum">     244 </span><span class="lineCov">          1 :   bool apply(</span>
+<span class="lineNum">     245 </span>            :       const gsl::not_null&lt;std::add_pointer_t&lt;db::item_type&lt;Tags&gt;&gt;&gt;... tensors,
+<span class="lineNum">     246 </span>            :       const std::unordered_map&lt;Direction&lt;VolumeDim&gt;,
+<span class="lineNum">     247 </span>            :                                Minmod_detail::tensor_double_from&lt;
+<span class="lineNum">     248 </span>            :                                    db::item_type&lt;Tags&gt;&gt;&gt;&amp;... neighbor_tensors,
+<span class="lineNum">     249 </span>            :       const Element&lt;VolumeDim&gt;&amp; element, const Mesh&lt;VolumeDim&gt;&amp; mesh,
+<span class="lineNum">     250 </span>            :       const tnsr::I&lt;DataVector, VolumeDim, Frame::Logical&gt;&amp; logical_coords,
+<span class="lineNum">     251 </span>            :       const tnsr::I&lt;double, VolumeDim&gt;&amp; element_size,
+<span class="lineNum">     252 </span>            :       const std::unordered_map&lt;Direction&lt;VolumeDim&gt;,
+<span class="lineNum">     253 </span>            :                                tnsr::I&lt;double, VolumeDim&gt;&gt;&amp; neighbor_sizes)
+<span class="lineNum">     254 </span>            :       const noexcept {
+<span class="lineNum">     255 </span>            :     bool limiter_activated = false;
+<span class="lineNum">     256 </span>            :     const auto wrap_limit_one_tensor = [
+<span class="lineNum">     257 </span>            :       this, &amp;element, &amp;mesh, &amp;logical_coords, &amp;element_size, &amp;neighbor_sizes,
+<span class="lineNum">     258 </span>            :       &amp;limiter_activated
+<span class="lineNum">     259 </span>            :     ](const auto&amp; tensor, const auto&amp; neighbor_tensor) noexcept {
+<span class="lineNum">     260 </span>            :       // Get iterators into the local and neighbor tensors, because these are
+<span class="lineNum">     261 </span>            :       // independent from the structure of the tensor being limited.
+<span class="lineNum">     262 </span>            :       const auto tensor_begin = make_not_null(tensor-&gt;begin());
+<span class="lineNum">     263 </span>            :       const auto tensor_end = make_not_null(tensor-&gt;end());
+<span class="lineNum">     264 </span>            :       const auto neighbor_tensor_begin = [&amp;neighbor_tensor]() noexcept {
+<span class="lineNum">     265 </span>            :         std::unordered_map&lt;Direction&lt;VolumeDim&gt;, gsl::not_null&lt;const double*&gt;&gt;
+<span class="lineNum">     266 </span>            :             result;
+<span class="lineNum">     267 </span>            :         for (const auto&amp; dir_and_tensor : neighbor_tensor) {
+<span class="lineNum">     268 </span>            :           result.insert(
+<span class="lineNum">     269 </span>            :               std::make_pair(dir_and_tensor.first,
+<span class="lineNum">     270 </span>            :                              make_not_null(dir_and_tensor.second.cbegin())));
+<span class="lineNum">     271 </span>            :         }
+<span class="lineNum">     272 </span>            :         return result;
+<span class="lineNum">     273 </span>            :       }
+<span class="lineNum">     274 </span>            :       ();
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span>            :       limiter_activated = Minmod_detail::limit_one_tensor&lt;VolumeDim&gt;(
+<span class="lineNum">     277 </span>            :                               tensor_begin, tensor_end, neighbor_tensor_begin,
+<span class="lineNum">     278 </span>            :                               minmod_type_, tvbm_constant_, element, mesh,
+<span class="lineNum">     279 </span>            :                               logical_coords, element_size, neighbor_sizes) or
+<span class="lineNum">     280 </span>            :                           limiter_activated;
+<span class="lineNum">     281 </span>            :       return '0';
+<span class="lineNum">     282 </span>            :     };
+<span class="lineNum">     283 </span>            :     expand_pack(wrap_limit_one_tensor(tensors, neighbor_tensors)...);
+<span class="lineNum">     284 </span>            :     return limiter_activated;
+<span class="lineNum">     285 </span>            :   }
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span>            :  private:
+<span class="lineNum">     288 </span><span class="lineNoCov">          0 :   MinmodType minmod_type_;</span>
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :   double tvbm_constant_;</span>
+<span class="lineNum">     290 </span>            : };
+<span class="lineNum">     291 </span>            : 
+<span class="lineNum">     292 </span>            : template &lt;size_t VolumeDim, typename TagList&gt;
+<span class="lineNum">     293 </span><span class="lineNoCov">          0 : SPECTRE_ALWAYS_INLINE bool operator==(</span>
+<span class="lineNum">     294 </span>            :     const Minmod&lt;VolumeDim, TagList&gt;&amp; lhs,
+<span class="lineNum">     295 </span>            :     const Minmod&lt;VolumeDim, TagList&gt;&amp; rhs) noexcept {
+<span class="lineNum">     296 </span>            :   return lhs.minmod_type() == rhs.minmod_type() and
+<span class="lineNum">     297 </span>            :          lhs.tvbm_constant() == rhs.tvbm_constant();
+<span class="lineNum">     298 </span>            : }
+<span class="lineNum">     299 </span>            : 
+<span class="lineNum">     300 </span>            : template &lt;size_t VolumeDim, typename TagList&gt;
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 : SPECTRE_ALWAYS_INLINE bool operator!=(</span>
+<span class="lineNum">     302 </span>            :     const Minmod&lt;VolumeDim, TagList&gt;&amp; lhs,
+<span class="lineNum">     303 </span>            :     const Minmod&lt;VolumeDim, TagList&gt;&amp; rhs) noexcept {
+<span class="lineNum">     304 </span>            :   return not(lhs == rhs);
+<span class="lineNum">     305 </span>            : }
+<span class="lineNum">     306 </span>            : 
+<span class="lineNum">     307 </span>            : }  // namespace SlopeLimiters
+<span class="lineNum">     308 </span>            : 
+<span class="lineNum">     309 </span>            : template &lt;&gt;
+<span class="lineNum">     310 </span><span class="lineNoCov">          0 : struct create_from_yaml&lt;SlopeLimiters::MinmodType&gt; {</span>
+<span class="lineNum">     311 </span><span class="lineNoCov">          0 :   static SlopeLimiters::MinmodType create(const Option&amp; options);</span>
+<span class="lineNum">     312 </span>            : };
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

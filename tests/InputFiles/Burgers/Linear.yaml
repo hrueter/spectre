@@ -1,0 +1,37 @@
+# Distributed under the MIT License.
+# See LICENSE.txt for details.
+
+# Executable: EvolveBurgers
+# Check: execute
+
+AnalyticSolution:
+  ShockTime: -1.
+
+InitialTime: 0.0
+FinalTime: 0.1
+InitialTimeStep: 0.001
+InitialSlabSize: 0.01
+
+DomainCreator:
+  Interval:
+    LowerBound: [-1.0]
+    UpperBound: [1.0]
+    IsPeriodicIn: [false]
+    InitialRefinement: [2]
+    InitialGridPoints: [7]
+
+TimeStepper:
+  AdamsBashforthN:
+    TargetOrder: 1
+    SelfStart: true
+
+StepController: BinaryFraction
+
+StepChoosers:
+  - Constant: 0.05
+  - Increase:
+      Factor: 2
+  - Cfl:
+      SafetyFactor: 0.2
+
+NumericalFluxParams:
