@@ -22,7 +22,7 @@ template <typename ReceiveTag, typename Proxy, typename ReceiveDataType>
 void receive_data(Proxy&& proxy, typename ReceiveTag::temporal_id temporal_id,
                   ReceiveDataType&& receive_data,
                   const bool enable_if_disabled) noexcept {
-  proxy.template receive_data<ReceiveTag>(
+  proxy.template receive_data<ReceiveTag, ReceiveDataType>(
       std::move(temporal_id), std::forward<ReceiveDataType>(receive_data),
       enable_if_disabled);
 }
@@ -30,7 +30,7 @@ void receive_data(Proxy&& proxy, typename ReceiveTag::temporal_id temporal_id,
 template <typename ReceiveTag, typename Proxy, typename ReceiveDataType>
 void receive_data(Proxy&& proxy, typename ReceiveTag::temporal_id temporal_id,
                   ReceiveDataType&& receive_data) noexcept {
-  proxy.template receive_data<ReceiveTag>(
+  proxy.template receive_data<ReceiveTag, ReceiveDataType>(
       std::move(temporal_id), std::forward<ReceiveDataType>(receive_data));
 }
 // @}

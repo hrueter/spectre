@@ -106,7 +106,7 @@ class ConstGlobalCache : public CBase_ConstGlobalCache<Metavariables> {
 
   /// Entry method to set the ParallelComponents (should only be called once)
   void set_parallel_components(
-      tuples::tagged_tuple_from_typelist<parallel_component_tag_list>&
+      tuples::tagged_tuple_from_typelist<parallel_component_tag_list>&&
           parallel_components,
       const CkCallback& callback) noexcept;
 
@@ -141,7 +141,7 @@ class ConstGlobalCache : public CBase_ConstGlobalCache<Metavariables> {
 
 template <typename Metavariables>
 void ConstGlobalCache<Metavariables>::set_parallel_components(
-    tuples::tagged_tuple_from_typelist<parallel_component_tag_list>&
+    tuples::tagged_tuple_from_typelist<parallel_component_tag_list>&&
         parallel_components,
     const CkCallback& callback) noexcept {
   ASSERT(!parallel_components_have_been_set_,
@@ -204,14 +204,11 @@ auto get(const ConstGlobalCache<Metavariables>& cache) noexcept -> const
       [](std::true_type /*is_unique_ptr*/, auto&& local_cache)
           -> decltype(
               *(tuples::get<tag>(local_cache.const_global_cache_).get())) {
-        return *(
-            tuples::get<tag>(local_cache.const_global_cache_)
-                .get());
+        return *(tuples::get<tag>(local_cache.const_global_cache_).get());
       },
       [](std::false_type /*is_unique_ptr*/, auto&& local_cache)
           -> decltype(tuples::get<tag>(local_cache.const_global_cache_)) {
-        return tuples::get<tag>(
-            local_cache.const_global_cache_);
+        return tuples::get<tag>(local_cache.const_global_cache_);
       })(typename tt::is_a<std::unique_ptr, typename tag::type>::type{}, cache);
 }
 

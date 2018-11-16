@@ -89,13 +89,13 @@ void print_info() {
 
 // clang-tidy: google-runtime-references
 PeGroupReporter::PeGroupReporter(
-    CkCallback& cb_start_node_group_check) {  // NOLINT
+    CkCallback cb_start_node_group_check) {  // NOLINT
   print_info();
   this->contribute(cb_start_node_group_check);
 }
 
 // clang-tidy: google-runtime-references
-NodeGroupReporter::NodeGroupReporter(CkCallback& cb_end_report) {  // NOLINT
+NodeGroupReporter::NodeGroupReporter(CkCallback cb_end_report) {  // NOLINT
   print_info();
   this->contribute(cb_end_report);
 }
