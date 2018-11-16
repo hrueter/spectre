@@ -7,6 +7,7 @@
 #include <boost/range/combine.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <cstddef>
+#include <pup.h>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -19,7 +20,6 @@
 #include "DataStructures/Variables.hpp"
 #include "DataStructures/VariablesHelpers.hpp"
 #include "ErrorHandling/Error.hpp"
-#include "Parallel/PupStlCpp11.hpp"
 #include "Utilities/GetOutput.hpp"
 #include "Utilities/Gsl.hpp"
 #include "Utilities/Literals.hpp"
@@ -606,18 +606,18 @@ SPECTRE_TEST_CASE("Unit.DataStructures.Variables.add_slice_to_data",
     "Unit.DataStructures.Variables.assign_to_default",
     "[DataStructures][Unit]") {
   ASSERTION_TEST();
-  #ifdef SPECTRE_DEBUG
+#ifdef SPECTRE_DEBUG
   Variables<tmpl::list<VariablesTestTags_detail::scalar>> vars;
   get<VariablesTestTags_detail::scalar>(vars) = Scalar<DataVector>{{{{0.}}}};
   ERROR("Failed to trigger ASSERT in an assertion test");
 #endif
 }
 
-// [[OutputRegex, volume_vars has wrong number of grid points.
-//  Expected 8, got 10]]
-[[noreturn]] SPECTRE_TEST_CASE(
-    "Unit.DataStructures.Variables.add_slice_to_data.BadSize.volume",
-    "[DataStructures][Unit]") {
+    // [[OutputRegex, volume_vars has wrong number of grid points.
+    //  Expected 8, got 10]]
+    [[noreturn]] SPECTRE_TEST_CASE(
+        "Unit.DataStructures.Variables.add_slice_to_data.BadSize.volume",
+        "[DataStructures][Unit]") {
   ASSERTION_TEST();
 #ifdef SPECTRE_DEBUG
   Variables<tmpl::list<VariablesTestTags_detail::vector>> vars(10, 0.);

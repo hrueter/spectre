@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <pup.h>
 
 #include "DataStructures/DataVector.hpp"
 #include "DataStructures/Tensor/Expressions/Contract.hpp"
@@ -15,7 +16,6 @@
 #include "DataStructures/Tensor/Structure.hpp"
 #include "DataStructures/Tensor/TypeAliases.hpp"
 #include "ErrorHandling/Error.hpp"
-#include "Parallel/PupStlCpp11.hpp"
 #include "Utilities/ForceInline.hpp"
 #include "Utilities/Gsl.hpp"
 #include "Utilities/MakeArray.hpp"
@@ -531,8 +531,7 @@ std::ostream& operator<<(
                 "operator<< is not defined for the type you are trying to "
                 "stream in Tensor");
   for (size_t i = 0; i < x.size() - 1; ++i) {
-    os << "T" << x.get_tensor_index(i) << "=" << x[i]
-       << "\n";
+    os << "T" << x.get_tensor_index(i) << "=" << x[i] << "\n";
   }
   size_t i = x.size() - 1;
   os << "T" << x.get_tensor_index(i) << "=" << x[i];

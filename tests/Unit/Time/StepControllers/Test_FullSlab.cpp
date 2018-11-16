@@ -5,8 +5,8 @@
 
 #include <limits>
 #include <memory>
+#include <pup.h>
 
-// IWYU pragma: no_include "Parallel/PupStlCpp11.hpp"
 #include "Parallel/RegisterDerivedClassesWithCharm.hpp"
 #include "Time/Slab.hpp"
 #include "Time/StepControllers/FullSlab.hpp"

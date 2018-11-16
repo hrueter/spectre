@@ -6,9 +6,9 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <pup.h>
 
 #include "DataStructures/DataVector.hpp"
-#include "Parallel/PupStlCpp11.hpp"
 #include "PointwiseFunctions/MathFunctions/MathFunction.hpp"
 #include "PointwiseFunctions/MathFunctions/PowX.hpp"
 #include "Utilities/ConstantExpressions.hpp"
@@ -16,7 +16,8 @@
 #include "tests/Unit/TestCreation.hpp"
 #include "tests/Unit/TestHelpers.hpp"
 
-template <size_t VolumeDim> class MathFunction;
+template <size_t VolumeDim>
+class MathFunction;
 
 SPECTRE_TEST_CASE("Unit.PointwiseFunctions.MathFunctions.PowX",
                   "[PointwiseFunctions][Unit]") {

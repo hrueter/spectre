@@ -7,13 +7,13 @@
 #include <cmath>
 #include <cstddef>
 #include <ostream>
+#include <pup.h>
 
 #include "DataStructures/DataVector.hpp"                   // IWYU pragma: keep
 #include "DataStructures/Tensor/EagerMath/DotProduct.hpp"  // IWYU pragma: keep
 #include "DataStructures/Tensor/Tensor.hpp"
 #include "ErrorHandling/Assert.hpp"
 #include "Evolution/Systems/NewtonianEuler/ConservativeFromPrimitive.hpp"
-#include "Parallel/PupStlCpp11.hpp"
 #include "Utilities/GenerateInstantiations.hpp"
 #include "Utilities/Gsl.hpp"
 #include "Utilities/MakeWithValue.hpp"

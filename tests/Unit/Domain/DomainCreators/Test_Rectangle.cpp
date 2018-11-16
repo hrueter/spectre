@@ -23,7 +23,6 @@
 #include "Domain/DomainCreators/Rectangle.hpp"
 #include "Domain/DomainCreators/RegisterDerivedWithCharm.hpp"
 #include "Domain/OrientationMap.hpp"
-#include "Parallel/PupStlCpp11.hpp"
 #include "Utilities/MakeVector.hpp"
 #include "tests/Unit/Domain/DomainTestHelpers.hpp"
 #include "tests/Unit/TestCreation.hpp"

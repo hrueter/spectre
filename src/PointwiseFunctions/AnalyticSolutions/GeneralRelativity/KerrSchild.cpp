@@ -16,7 +16,6 @@
 #include "DataStructures/Tensor/Tensor.hpp"  // IWYU pragma: keep
 #include "DataStructures/Tensor/TypeAliases.hpp"
 #include "DataStructures/Variables.hpp"
-#include "Parallel/PupStlCpp11.hpp"
 #include "PointwiseFunctions/GeneralRelativity/ComputeSpacetimeQuantities.hpp"
 #include "PointwiseFunctions/GeneralRelativity/Tags.hpp"
 #include "Utilities/ConstantExpressions.hpp"
@@ -67,63 +66,63 @@ struct KerrSchildBuffer<double> {
 
 template <>
 struct KerrSchildBuffer<DataVector> {
-  private:
-   // We make one giant allocation so that we don't thrash the heap. This is
-   // important if we call Kerr-Schild frequently such as when applying analytic
-   // boundary conditions.
-   Variables<tmpl::list<
-       ::Tags::TempI<0, 3>, ::Tags::TempScalar<1>, ::Tags::TempScalar<2>,
-       ::Tags::TempScalar<3>, ::Tags::TempScalar<4>, ::Tags::TempScalar<5>,
-       ::Tags::TempScalar<6>, ::Tags::Tempi<7, 3>, ::Tags::TempScalar<8>,
-       ::Tags::TempScalar<9>, ::Tags::TempScalar<10>, ::Tags::TempScalar<11>,
-       ::Tags::Tempi<12, 3>, ::Tags::TempScalar<13>, ::Tags::TempScalar<14>,
-       ::Tags::Tempi<15, 3>, ::Tags::Tempi<16, 3>, ::Tags::Tempij<17, 3>,
-       ::Tags::TempScalar<18>>>
-       temp_buffer_;
+ private:
+  // We make one giant allocation so that we don't thrash the heap. This is
+  // important if we call Kerr-Schild frequently such as when applying analytic
+  // boundary conditions.
+  Variables<tmpl::list<
+      ::Tags::TempI<0, 3>, ::Tags::TempScalar<1>, ::Tags::TempScalar<2>,
+      ::Tags::TempScalar<3>, ::Tags::TempScalar<4>, ::Tags::TempScalar<5>,
+      ::Tags::TempScalar<6>, ::Tags::Tempi<7, 3>, ::Tags::TempScalar<8>,
+      ::Tags::TempScalar<9>, ::Tags::TempScalar<10>, ::Tags::TempScalar<11>,
+      ::Tags::Tempi<12, 3>, ::Tags::TempScalar<13>, ::Tags::TempScalar<14>,
+      ::Tags::Tempi<15, 3>, ::Tags::Tempi<16, 3>, ::Tags::Tempij<17, 3>,
+      ::Tags::TempScalar<18>>>
+      temp_buffer_;
 
-  public:
-   explicit KerrSchildBuffer(const size_t size) noexcept
-       : temp_buffer_(size),
-         x_minus_center(get<::Tags::TempI<0, 3>>(temp_buffer_)),
-         a_dot_x(get(get<::Tags::TempScalar<1>>(temp_buffer_))),
-         a_dot_x_squared(get(get<::Tags::TempScalar<2>>(temp_buffer_))),
-         half_xsq_minus_asq(get(get<::Tags::TempScalar<3>>(temp_buffer_))),
-         r_squared(get(get<::Tags::TempScalar<4>>(temp_buffer_))),
-         a_dot_x_over_rsquared(get(get<::Tags::TempScalar<5>>(temp_buffer_))),
-         deriv_log_r_denom(get(get<::Tags::TempScalar<6>>(temp_buffer_))),
-         deriv_log_r(get<::Tags::Tempi<7, 3>>(temp_buffer_)),
-         H(get(get<::Tags::TempScalar<9>>(temp_buffer_))),
-         H_denom(get(get<::Tags::TempScalar<8>>(temp_buffer_))),
-         temp1(get(get<::Tags::TempScalar<10>>(temp_buffer_))),
-         temp2(get(get<::Tags::TempScalar<11>>(temp_buffer_))),
-         a_cross_x(get<::Tags::Tempi<12, 3>>(temp_buffer_)),
-         denom(get(get<::Tags::TempScalar<13>>(temp_buffer_))),
-         r(get(get<::Tags::TempScalar<14>>(temp_buffer_))),
-         deriv_H(get<::Tags::Tempi<15, 3>>(temp_buffer_)),
-         null_form(get<::Tags::Tempi<16, 3>>(temp_buffer_)),
-         deriv_null_form(get<::Tags::Tempij<17, 3>>(temp_buffer_)),
-         lapse_squared(get(get<::Tags::TempScalar<18>>(temp_buffer_))) {}
+ public:
+  explicit KerrSchildBuffer(const size_t size) noexcept
+      : temp_buffer_(size),
+        x_minus_center(get<::Tags::TempI<0, 3>>(temp_buffer_)),
+        a_dot_x(get(get<::Tags::TempScalar<1>>(temp_buffer_))),
+        a_dot_x_squared(get(get<::Tags::TempScalar<2>>(temp_buffer_))),
+        half_xsq_minus_asq(get(get<::Tags::TempScalar<3>>(temp_buffer_))),
+        r_squared(get(get<::Tags::TempScalar<4>>(temp_buffer_))),
+        a_dot_x_over_rsquared(get(get<::Tags::TempScalar<5>>(temp_buffer_))),
+        deriv_log_r_denom(get(get<::Tags::TempScalar<6>>(temp_buffer_))),
+        deriv_log_r(get<::Tags::Tempi<7, 3>>(temp_buffer_)),
+        H(get(get<::Tags::TempScalar<9>>(temp_buffer_))),
+        H_denom(get(get<::Tags::TempScalar<8>>(temp_buffer_))),
+        temp1(get(get<::Tags::TempScalar<10>>(temp_buffer_))),
+        temp2(get(get<::Tags::TempScalar<11>>(temp_buffer_))),
+        a_cross_x(get<::Tags::Tempi<12, 3>>(temp_buffer_)),
+        denom(get(get<::Tags::TempScalar<13>>(temp_buffer_))),
+        r(get(get<::Tags::TempScalar<14>>(temp_buffer_))),
+        deriv_H(get<::Tags::Tempi<15, 3>>(temp_buffer_)),
+        null_form(get<::Tags::Tempi<16, 3>>(temp_buffer_)),
+        deriv_null_form(get<::Tags::Tempij<17, 3>>(temp_buffer_)),
+        lapse_squared(get(get<::Tags::TempScalar<18>>(temp_buffer_))) {}
 
-   tnsr::I<DataVector, 3>& x_minus_center;
-   DataVector& a_dot_x;
-   DataVector& a_dot_x_squared;
-   DataVector& half_xsq_minus_asq;
-   DataVector& r_squared;
-   DataVector& a_dot_x_over_rsquared;
-   DataVector& deriv_log_r_denom;
-   tnsr::i<DataVector, 3>& deriv_log_r;
-   DataVector& H;
-   DataVector& H_denom;
-   DataVector& temp1;
-   DataVector& temp2;
-   tnsr::i<DataVector, 3>& a_cross_x;
-   DataVector& denom;
-   DataVector& r;
-   tnsr::i<DataVector, 3>& deriv_H;
-   tnsr::i<DataVector, 3>& null_form;
-   tnsr::ij<DataVector, 3>& deriv_null_form;
-   double null_vector_0 = -1.0;
-   DataVector& lapse_squared;
+  tnsr::I<DataVector, 3>& x_minus_center;
+  DataVector& a_dot_x;
+  DataVector& a_dot_x_squared;
+  DataVector& half_xsq_minus_asq;
+  DataVector& r_squared;
+  DataVector& a_dot_x_over_rsquared;
+  DataVector& deriv_log_r_denom;
+  tnsr::i<DataVector, 3>& deriv_log_r;
+  DataVector& H;
+  DataVector& H_denom;
+  DataVector& temp1;
+  DataVector& temp2;
+  tnsr::i<DataVector, 3>& a_cross_x;
+  DataVector& denom;
+  DataVector& r;
+  tnsr::i<DataVector, 3>& deriv_H;
+  tnsr::i<DataVector, 3>& null_form;
+  tnsr::ij<DataVector, 3>& deriv_null_form;
+  double null_vector_0 = -1.0;
+  DataVector& lapse_squared;
 };
 }  // namespace
 
@@ -139,10 +138,9 @@ KerrSchild::KerrSchild(const double mass,
 {
   const double spin_magnitude = magnitude(dimensionless_spin_);
   if (spin_magnitude > 1.0) {
-    PARSE_ERROR(context,
-                "Spin magnitude must be < 1. Given spin: "
-                    << dimensionless_spin_ << " with magnitude "
-                    << spin_magnitude);
+    PARSE_ERROR(context, "Spin magnitude must be < 1. Given spin: "
+                             << dimensionless_spin_ << " with magnitude "
+                             << spin_magnitude);
   }
   if (mass_ < 0.0) {
     PARSE_ERROR(context, "Mass must be non-negative. Given mass: " << mass_);

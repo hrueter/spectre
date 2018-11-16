@@ -4,9 +4,9 @@
 #include "Domain/Direction.hpp"
 
 #include <ostream>
+#include <pup.h>
 
 #include "ErrorHandling/Assert.hpp"
-#include "Parallel/PupStlCpp11.hpp"  // IWYU pragma: keep
 #include "Utilities/GenerateInstantiations.hpp"
 
 /// \cond
@@ -37,8 +37,9 @@ Direction<2>::Direction(const size_t dimension, const Side side) noexcept {
 template <>
 Direction<3>::Direction(const size_t dimension, const Side side) noexcept {
   ASSERT(0 == dimension or 1 == dimension or 2 == dimension,
-         "dim = " << dimension << ", for Direction<3> only dim = 0, dim = 1, "
-                                  "or dim = 2 are allowed.");
+         "dim = " << dimension
+                  << ", for Direction<3> only dim = 0, dim = 1, "
+                     "or dim = 2 are allowed.");
   if (0 == dimension) {
     axis_ = Axis::Xi;
   }

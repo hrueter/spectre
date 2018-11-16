@@ -5,11 +5,10 @@
 
 #include <initializer_list>  // IWYU pragma: keep
 #include <memory>
-// IWYU pragma: no_include <pup.h>
+#include <pup.h>
 
 #include "DataStructures/DataBox/DataBox.hpp"
 #include "Parallel/ConstGlobalCache.hpp"
-// IWYU pragma: no_include "Parallel/PupStlCpp11.hpp"
 #include "Parallel/RegisterDerivedClassesWithCharm.hpp"
 #include "Time/Slab.hpp"
 #include "Time/StepChoosers/Increase.hpp"

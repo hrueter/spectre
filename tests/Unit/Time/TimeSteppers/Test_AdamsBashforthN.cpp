@@ -9,9 +9,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <pup.h>
 
 #include "ErrorHandling/Assert.hpp"
-#include "Parallel/PupStlCpp11.hpp"
 #include "Time/BoundaryHistory.hpp"
 #include "Time/History.hpp"
 #include "Time/Slab.hpp"
@@ -60,10 +60,12 @@ SPECTRE_TEST_CASE("Unit.Time.TimeSteppers.AdamsBashforthN", "[Unit][Time]") {
   CHECK_FALSE(can_change(end, start, mid));
   CHECK_FALSE(can_change(end, mid, start));
 
-  test_factory_creation<TimeStepper>("  AdamsBashforthN:\n"
-                                     "    Order: 3");
-  test_factory_creation<LtsTimeStepper>("  AdamsBashforthN:\n"
-                                        "    Order: 3");
+  test_factory_creation<TimeStepper>(
+      "  AdamsBashforthN:\n"
+      "    Order: 3");
+  test_factory_creation<LtsTimeStepper>(
+      "  AdamsBashforthN:\n"
+      "    Order: 3");
 
   TimeSteppers::AdamsBashforthN ab4(4);
   test_serialization(ab4);
@@ -95,8 +97,8 @@ SPECTRE_TEST_CASE("Unit.Time.TimeSteppers.AdamsBashforthN.Backwards",
     for (size_t start_points = 0; start_points < order; ++start_points) {
       INFO(start_points);
       const double epsilon = std::max(std::pow(1e-3, start_points + 1), 1e-14);
-      TimeStepperTestUtils::integrate_test(
-          TimeSteppers::AdamsBashforthN(order), start_points, -1., epsilon);
+      TimeStepperTestUtils::integrate_test(TimeSteppers::AdamsBashforthN(order),
+                                           start_points, -1., epsilon);
     }
   }
 
@@ -168,17 +170,16 @@ NCd quartic_coupling(const NCd& local, const NCd& remote) {
 double quartic_side1(double x) { return c10 + x * c11; }
 double quartic_side2(double x) { return c20 + x * (c21 + x * c22); }
 double quartic_answer(double x) {
-  return x * (c10 * c20
-              + x * ((c10 * c21 + c11 * c20) / 2
-                     + x * ((c10 * c22 + c11 * c21) / 3
-                            + x * (c11 * c22 / 4))));
+  return x * (c10 * c20 +
+              x * ((c10 * c21 + c11 * c20) / 2 +
+                   x * ((c10 * c22 + c11 * c21) / 3 + x * (c11 * c22 / 4))));
 }
 }  // namespace
 
 namespace MakeWithValueImpls {
 template <>
-SPECTRE_ALWAYS_INLINE NCd MakeWithValueImpl<NCd, NCd>::apply(
-    const NCd& /*unused*/, double value) {
+SPECTRE_ALWAYS_INLINE NCd
+MakeWithValueImpl<NCd, NCd>::apply(const NCd& /*unused*/, double value) {
   return NCd(value);
 }
 }  // namespace MakeWithValueImpls
@@ -192,8 +193,8 @@ void do_lts_test(const std::array<TimeDelta, 2>& dt) noexcept {
   // can leave it out.
 
   const bool forward_in_time = dt[0].is_positive();
-  const auto simulation_less =
-      [forward_in_time](const Time& a, const Time& b) noexcept {
+  const auto simulation_less = [forward_in_time](const Time& a,
+                                                 const Time& b) noexcept {
     return forward_in_time ? a < b : b < a;
   };
 
@@ -229,8 +230,8 @@ void do_lts_test(const std::array<TimeDelta, 2>& dt) noexcept {
   std::array<Time, 2> next{{t, t}};
   for (;;) {
     const auto side = static_cast<size_t>(
-        std::min_element(next.cbegin(), next.cend(), simulation_less)
-        - next.cbegin());
+        std::min_element(next.cbegin(), next.cend(), simulation_less) -
+        next.cbegin());
 
     if (side == 0) {
       history.local_insert(make_time_id(t), NCd(quartic_side1(t.value())));
@@ -244,8 +245,8 @@ void do_lts_test(const std::array<TimeDelta, 2>& dt) noexcept {
 
     ASSERT(not simulation_less(next_check, t), "Screwed up arithmetic");
     if (t == next_check) {
-      y += ab4.compute_boundary_delta(
-          quartic_coupling, make_not_null(&history), dt[0])();
+      y += ab4.compute_boundary_delta(quartic_coupling, make_not_null(&history),
+                                      dt[0])();
       CHECK(y == approx(quartic_answer(t.value())));
       if (t.is_at_slab_boundary()) {
         break;
@@ -282,10 +283,10 @@ void check_lts_vts() noexcept {
     }
   }
 
-  std::array<std::deque<TimeDelta>, 2> dt{{
-      {slab.duration() / 2, slab.duration() / 4, slab.duration() / 4},
-      {slab.duration() / 6, slab.duration() / 6, slab.duration() * 2 / 9,
-            slab.duration() * 4 / 9}}};
+  std::array<std::deque<TimeDelta>, 2> dt{
+      {{slab.duration() / 2, slab.duration() / 4, slab.duration() / 4},
+       {slab.duration() / 6, slab.duration() / 6, slab.duration() * 2 / 9,
+        slab.duration() * 4 / 9}}};
 
   double y = quartic_answer(t.value());
   Time next_check = t + dt[0][0];
@@ -308,8 +309,8 @@ void check_lts_vts() noexcept {
     gsl::at(next, side) += this_dt;
 
     if (*std::min_element(next.cbegin(), next.cend()) == next_check) {
-      y += ab4.compute_boundary_delta(
-          quartic_coupling, make_not_null(&history), next_check - t)();
+      y += ab4.compute_boundary_delta(quartic_coupling, make_not_null(&history),
+                                      next_check - t)();
       CHECK(y == approx(quartic_answer(next_check.value())));
       if (next_check.is_at_slab_boundary()) {
         break;
@@ -379,7 +380,7 @@ SPECTRE_TEST_CASE("Unit.Time.TimeSteppers.AdamsBashforthN.Reversal",
 
   const Slab slab(0., 1.);
   TimeSteppers::History<double, double> history{};
-  const auto add_history = [&df, &f, &history](const Time& time) noexcept {
+  const auto add_history = [&df, &f, &history ](const Time& time) noexcept {
     history.insert(time, f(time.value()), df(time.value()));
   };
   add_history(slab.start());
@@ -403,7 +404,7 @@ SPECTRE_TEST_CASE("Unit.Time.TimeSteppers.AdamsBashforthN.Boundary.Reversal",
 
   const Slab slab(0., 1.);
   TimeSteppers::BoundaryHistory<double, double, double> history{};
-  const auto add_history = [&df, &history](const TimeId& time_id) noexcept {
+  const auto add_history = [&df, &history ](const TimeId& time_id) noexcept {
     history.local_insert(time_id, df(time_id.time().value()));
     history.remote_insert(time_id, 0.);
   };

@@ -1,11 +1,12 @@
 // Distributed under the MIT License.
 // See LICENSE.txt for details.
 
+#include <pup.h>
+
 #include "Domain/ElementMap.hpp"
 
 #include "Domain/CoordinateMaps/CoordinateMap.hpp"  // IWYU pragma: keep
 #include "Domain/Side.hpp"
-#include "Parallel/PupStlCpp11.hpp"  // IWYU pragma: keep
 #include "Utilities/GenerateInstantiations.hpp"
 
 /// \cond
