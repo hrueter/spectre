@@ -7,6 +7,7 @@ set(LIBRARY_SOURCES
   ApplyMatrices.cpp
   CoefficientTransforms.cpp
   DefiniteIntegral.cpp
+  Filter.cpp
   IndefiniteIntegral.cpp
   Linearize.cpp
   MeanValue.cpp
