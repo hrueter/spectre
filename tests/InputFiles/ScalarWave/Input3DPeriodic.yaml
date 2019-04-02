@@ -39,6 +39,9 @@ StepChoosers:
   - Cfl:
       SafetyFactor: 0.2
 
+ExpFilterAlpha: 36.0
+ExpFilterS: 64
+
 NumericalFluxParams:
 
 EventsAndTriggers:

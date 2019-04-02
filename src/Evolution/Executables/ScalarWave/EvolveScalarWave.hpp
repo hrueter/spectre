@@ -28,6 +28,8 @@
 #include "NumericalAlgorithms/DiscontinuousGalerkin/Actions/FluxCommunication.hpp"  // IWYU pragma: keep
 #include "NumericalAlgorithms/DiscontinuousGalerkin/Actions/ImposeBoundaryConditions.hpp"  // IWYU pragma: keep
 #include "NumericalAlgorithms/DiscontinuousGalerkin/Tags.hpp"
+#include "NumericalAlgorithms/LinearOperators/Actions/FilterInitialize.hpp"
+#include "NumericalAlgorithms/LinearOperators/Actions/FilterU.hpp"
 #include "Options/Options.hpp"
 #include "Parallel/GotoAction.hpp"  // IWYU pragma: keep
 #include "Parallel/InitializationFunctions.hpp"
@@ -88,7 +90,8 @@ struct EvolutionMetavars {
       tmpl::list<analytic_solution_tag,
                  OptionTags::TypedTimeStepper<tmpl::conditional_t<
                      local_time_stepping, LtsTimeStepper, TimeStepper>>,
-                 OptionTags::EventsAndTriggers<events, triggers>>;
+                 OptionTags::EventsAndTriggers<events, triggers>,
+                 OptionTags::ExpFilterAlpha, OptionTags::ExpFilterS>;
   using domain_creator_tag = OptionTags::DomainCreator<Dim, Frame::Inertial>;
 
   struct ObservationType {};
@@ -118,7 +121,7 @@ struct EvolutionMetavars {
       tmpl::conditional_t<local_time_stepping,
                           dg::Actions::ApplyBoundaryFluxesLocalTimeStepping,
                           tmpl::list<>>,
-      Actions::UpdateU>>;
+      Actions::UpdateU, Actions::FilterU>>;
 
   struct EvolvePhaseStart;
   using component_list = tmpl::list<
@@ -127,6 +130,7 @@ struct EvolutionMetavars {
       DgElementArray<
           EvolutionMetavars, dg::Actions::InitializeElement<Dim>,
           tmpl::flatten<tmpl::list<
+              Actions::FilterInitialize,
               SelfStart::self_start_procedure<compute_rhs, update_variables>,
               Actions::Label<EvolvePhaseStart>, Actions::AdvanceTime,
               Actions::RunEventsAndTriggers, Actions::FinalTime,
@@ -141,12 +145,7 @@ struct EvolutionMetavars {
       "The analytic solution is: PlaneWave\n"
       "The numerical flux is:    UpwindFlux\n"};
 
-  enum class Phase {
-    Initialization,
-    RegisterWithObserver,
-    Evolve,
-    Exit
-  };
+  enum class Phase { Initialization, RegisterWithObserver, Evolve, Exit };
 
   static Phase determine_next_phase(
       const Phase& current_phase,
