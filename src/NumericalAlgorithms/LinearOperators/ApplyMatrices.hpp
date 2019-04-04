@@ -40,8 +40,8 @@ size_t result_size(const std::array<MatrixType, Dim>& matrices,
       num_points_result *= extents[d];
     } else {
       ASSERT(cols == extents[d],
-             "Matrix " << d << " has wrong number of columns: "
-             << cols << " (expected " << extents[d] << ")");
+             "Matrix " << d << " has wrong number of columns: " << cols
+                       << " (expected " << extents[d] << ")");
       num_points_result *= dereference_wrapper(gsl::at(matrices, d)).rows();
     }
   }
@@ -65,12 +65,13 @@ void apply_matrices(const gsl::not_null<Variables<VariableTags>*> result,
                     const Index<Dim>& extents) noexcept {
   ASSERT(u.number_of_grid_points() == extents.product(),
          "Mismatch between extents (" << extents.product()
-         << ") and variables (" << u.number_of_grid_points() << ").");
+                                      << ") and variables ("
+                                      << u.number_of_grid_points() << ").");
   ASSERT(result->number_of_grid_points() ==
-         apply_matrices_detail::result_size(matrices, extents),
+             apply_matrices_detail::result_size(matrices, extents),
          "result has wrong size.  Expected "
-         << apply_matrices_detail::result_size(matrices, extents)
-         << ", received " << result->number_of_grid_points());
+             << apply_matrices_detail::result_size(matrices, extents)
+             << ", received " << result->number_of_grid_points());
   apply_matrices_detail::Impl<Dim>::apply(result->data(), matrices, u.data(),
                                           extents,
                                           u.number_of_independent_components);
@@ -92,12 +93,12 @@ void apply_matrices(const gsl::not_null<DataVector*> result,
                     const DataVector& u, const Index<Dim>& extents) noexcept {
   ASSERT(u.size() == extents.product(),
          "Mismatch between extents (" << extents.product() << ") and size ("
-         << u.size() << ").");
-  ASSERT(result->size() ==
-         apply_matrices_detail::result_size(matrices, extents),
-         "result has wrong size.  Expected "
-         << apply_matrices_detail::result_size(matrices, extents)
-         << ", received " << result->size());
+                                      << u.size() << ").");
+  ASSERT(
+      result->size() == apply_matrices_detail::result_size(matrices, extents),
+      "result has wrong size.  Expected "
+          << apply_matrices_detail::result_size(matrices, extents)
+          << ", received " << result->size());
   apply_matrices_detail::Impl<Dim>::apply(result->data(), matrices, u.data(),
                                           extents, 1);
 }
