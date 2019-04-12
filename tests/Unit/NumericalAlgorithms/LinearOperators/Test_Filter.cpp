@@ -3,17 +3,20 @@
 
 #include "tests/Unit/TestingFramework.hpp"
 
+#include <cmath>
 #include <cstddef>
 
+#include "DataStructures/DataVector.hpp"
+#include "DataStructures/Index.hpp"
 #include "DataStructures/ModalVector.hpp"
-#include "DataStructures/StripeIterator.hpp"
+#include "DataStructures/Tensor/Tensor.hpp"
 #include "DataStructures/Variables.hpp"
+#include "Domain/Mesh.hpp"
 #include "NumericalAlgorithms/LinearOperators/CoefficientTransforms.hpp"
 #include "NumericalAlgorithms/LinearOperators/Filter.hpp"
 #include "NumericalAlgorithms/Spectral/Spectral.hpp"
-
-template <typename TagsList>
-class Variables;
+#include "Utilities/Gsl.hpp"
+#include "Utilities/TMPL.hpp"
 
 namespace {
 template <size_t Dim>
@@ -37,6 +40,8 @@ using one_var = tmpl::list<Var1<Dim>>;
 // test that highest mode is almost completely filtered out
 template <Spectral::Basis Basis, Spectral::Quadrature Quadrature>
 void test_filter_variables() noexcept {
+  CAPTURE(Basis);
+  CAPTURE(Quadrature);
   const size_t n_grid_pts = 7;
   const double alpha = 30.0;
   const size_t s = 20;
@@ -111,14 +116,28 @@ void test_filter_variables() noexcept {
 
   CHECK_ITERABLE_APPROX(filtered_var11_data, expected_var11_data);
   CHECK_ITERABLE_APPROX(filtered_var12_data, expected_var12_data);
-  CHECK_ITERABLE_APPROX(filtered_var13_data, expected_var13_data);
-  CHECK_ITERABLE_APPROX(filtered_var2_data, expected_var2_data);
+
+  if (Quadrature == Spectral::Quadrature::Gauss) {
+    // for Gauss quadrature we need a looser error bound
+    // (because(?) we use the analytic inverse Vandermonde matrix instead of the
+    // numerical)
+    Approx custom_approx = Approx::custom().epsilon(1.e-8).scale(1.0);
+    CHECK_ITERABLE_CUSTOM_APPROX(filtered_var13_data, expected_var13_data,
+                                 custom_approx);
+    CHECK_ITERABLE_CUSTOM_APPROX(filtered_var2_data, expected_var2_data,
+                                 custom_approx);
+  } else {
+    CHECK_ITERABLE_APPROX(filtered_var13_data, expected_var13_data);
+    CHECK_ITERABLE_APPROX(filtered_var2_data, expected_var2_data);
+  }
 }
 
 // test that filter works with DataVectors
 // test that filter cache works
 template <Spectral::Basis Basis, Spectral::Quadrature Quadrature>
 void test_filter_cache() noexcept {
+  CAPTURE(Basis);
+  CAPTURE(Quadrature);
   const size_t n_grid_pts = 9;
   const double alpha = 20.0;
   const size_t s = 5;
@@ -158,6 +177,17 @@ SPECTRE_TEST_CASE("Unit.Numerical.LinearOperators.Filter",
                   "[NumericalAlgorithms][LinearOperators][Unit]") {
   test_filter_variables<Spectral::Basis::Chebyshev,
                         Spectral::Quadrature::GaussLobatto>();
+  test_filter_variables<Spectral::Basis::Chebyshev,
+                        Spectral::Quadrature::Gauss>();
+  test_filter_variables<Spectral::Basis::Legendre,
+                        Spectral::Quadrature::GaussLobatto>();
+  test_filter_variables<Spectral::Basis::Legendre,
+                        Spectral::Quadrature::Gauss>();
 
+  test_filter_cache<Spectral::Basis::Chebyshev,
+                    Spectral::Quadrature::GaussLobatto>();
+  test_filter_cache<Spectral::Basis::Chebyshev, Spectral::Quadrature::Gauss>();
+  test_filter_cache<Spectral::Basis::Legendre,
+                    Spectral::Quadrature::GaussLobatto>();
   test_filter_cache<Spectral::Basis::Legendre, Spectral::Quadrature::Gauss>();
 }
