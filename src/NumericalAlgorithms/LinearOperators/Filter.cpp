@@ -3,8 +3,8 @@
 
 #include "NumericalAlgorithms/LinearOperators/Filter.hpp"
 
-#include "DataStructures/DataVector.hpp"
-#include "Domain/Mesh.hpp"
+#include "DataStructures/DataVector.hpp"  // IWYU pragma: keep
+#include "Domain/Mesh.hpp"                // IWYU pragma: keep
 #include "NumericalAlgorithms/Spectral/Spectral.hpp"
 #include "Utilities/GenerateInstantiations.hpp"
 

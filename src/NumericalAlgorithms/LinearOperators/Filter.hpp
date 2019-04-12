@@ -54,7 +54,7 @@ class not_null;
  * FIX: delete/replace cache when alpha or s changed?
  */
 template <typename VarType, size_t Dim>
-void filter(const gsl::not_null<VarType*> result, const VarType& input,
+void filter(gsl::not_null<VarType*> result, const VarType& input,
             const Mesh<Dim>& mesh, double alpha, size_t s) noexcept;
 
 /**
@@ -64,6 +64,8 @@ void filter(const gsl::not_null<VarType*> result, const VarType& input,
  *
  * \param input values on the collocation points to filter
  * \param mesh the mesh on which the data is located
+ * \param alpha damping factor in the exponent for exponential filter
+ * \param s damping exponent for exponential filter
  *
  * \return filtered output nodal coefficients
  */
@@ -86,7 +88,7 @@ VarType filter(const VarType& input, const Mesh<Dim>& mesh, double alpha,
  * \param mesh the mesh on which the data is located
  */
 template <typename VarType, size_t Dim>
-void filter_with_cached_matrix(const gsl::not_null<VarType*> result,
+void filter_with_cached_matrix(gsl::not_null<VarType*> result,
                                const VarType& input,
                                const Mesh<Dim>& mesh) noexcept;
 
@@ -130,4 +132,4 @@ template <size_t Dim>
 void filter_cache_initialize(const Mesh<Dim>& mesh, double alpha,
                              size_t s) noexcept;
 
-#include "NumericalAlgorithms/LinearOperators/Filter.tpp"
+#include "NumericalAlgorithms/LinearOperators/Filter.tpp"  // IWYU pragma: keep
