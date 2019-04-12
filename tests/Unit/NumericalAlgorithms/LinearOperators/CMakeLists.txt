@@ -16,6 +16,8 @@ set(LIBRARY_SOURCES
   Test_Transpose.cpp
   )
 
+add_subdirectory(Actions)
+
 add_test_library(
   ${LIBRARY}
   "NumericalAlgorithms/LinearOperators/"
