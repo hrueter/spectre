@@ -404,18 +404,23 @@ Matrix exponential_filter_matrix(const size_t num_points, const double alpha,
   // \mathrm{diag}(exp(0),...,exp(-alpha (n/(N-1))^s),...,exp(-alpha)
   // \cdot\mathcal{V}\f$
   // (see description of `exponential_filter_matrix`).
-  Matrix nodal_exp_filter(num_points, num_points);
+  Matrix nodal_exp_filter{num_points, num_points};
   // we also have DiagonalModalOperator, but currently that can only act
   // on ModalVectors, so we have to use a full matrix here
   // modal filter matrix F
   Matrix modal_exp_filter{num_points, num_points, 0.0};
   // tmp = F * V
-  Matrix tmp_matrix(num_points, num_points);
+  Matrix tmp_matrix{num_points, num_points};
 
   // compute modal Filter matrix F
-  for (size_t i = 0; i < num_points; i++) {
-    modal_exp_filter(i, i) =
-        exp(-alpha * pow(static_cast<double>(i) / (num_points - 1), s));
+  if (num_points == 1) {
+    // e.g. for GaussLobatto min_num_points == 1
+    modal_exp_filter(0, 0) = 1.0;
+  } else {
+    for (size_t i = 0; i < num_points; i++) {
+      modal_exp_filter(i, i) =
+          exp(-alpha * pow(static_cast<double>(i) / (num_points - 1), s));
+    }
   }
 
   // CHECK: are there inplace versions for dgemm?
@@ -542,6 +547,9 @@ Matrix exponential_filter_matrix(const Mesh<1>& mesh, const double alpha,
 void exponential_filter_matrix_make_cache(const Mesh<1>& mesh,
                                           const double alpha,
                                           const size_t s) noexcept {
+  // note: using `numpoints` here instead of `num_points`, because GCC6
+  // for some reason complains about `num_points` being shadowed in
+  // `get_spectral_quantity_for_mesh`
   get_spectral_quantity_for_mesh(
       [ alpha, s ](const auto basis, const auto quadrature,
                    const size_t numpoints) noexcept {
