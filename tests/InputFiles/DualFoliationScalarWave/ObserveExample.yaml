@@ -1,0 +1,61 @@
+# Distributed under the MIT License.
+# See LICENSE.txt for details.
+
+# Executable: EvolveDualFoliationScalarWave3D
+# Check: parse
+
+AnalyticSolution:
+  RegularSphericalWave:
+    Profile:
+      Gaussian:
+        Amplitude: 1.
+        Width: 1.
+        Center: 0.
+
+Evolution:
+  InitialTime: 0.0
+  InitialTimeStep: 0.001
+  InitialSlabSize: 0.01
+  TimeStepper:
+    AdamsBashforthN:
+      Order: 3
+  StepController: BinaryFraction
+  StepChoosers:
+    - Constant: 0.05
+    - Increase:
+        Factor: 2
+    - Cfl:
+        SafetyFactor: 0.2
+
+DomainCreator:
+  Sphere:
+    InnerRadius: 1
+    OuterRadius: 3
+    InitialRefinement: 2
+    InitialGridPoints: [2,3]
+    UseEquiangularMap: true
+
+# If filtering is enabled in the executable the filter can be controlled using:
+# ExpFilter0:
+#   Alpha: 12
+#   HalfPower: 32
+
+NumericalFlux:
+  Upwind:
+
+EventsAndTriggers:
+  ? EveryNSlabs:
+      N: 3
+      Offset: 5
+  : - ObserveErrorNorms
+  ? SpecifiedSlabs:
+      Slabs: [0, 100]
+  : - ObserveFields:
+        VariablesToObserve: ["Psi"]
+  ? SpecifiedSlabs:
+      Slabs: [10]
+  : - Completion
+
+Observers:
+  VolumeFileName: "DualFoliationScalarWave3DVolume"
+  ReductionFileName: "DualFoliationScalarWave3DReductions"

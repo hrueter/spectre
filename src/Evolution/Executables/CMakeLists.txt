@@ -3,9 +3,13 @@
 
 add_subdirectory(Burgers)
 add_subdirectory(Cce)
+add_subdirectory(DualFoliationScalarWave)
 add_subdirectory(GeneralizedHarmonic)
 add_subdirectory(GrMhd)
 add_subdirectory(NewtonianEuler)
 add_subdirectory(RadiationTransport)
 add_subdirectory(RelativisticEuler)
 add_subdirectory(ScalarWave)
+
+
+
