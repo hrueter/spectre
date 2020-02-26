@@ -1,9 +1,7 @@
 # Distributed under the MIT License.
 # See LICENSE.txt for details.
 
-add_subdirectory(RadialVPlus)
-
-set(LIBRARY ScalarWave)
+set(LIBRARY RadialVPlus)
 
 set(LIBRARY_SOURCES
   Characteristics.cpp
