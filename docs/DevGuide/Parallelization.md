@@ -129,7 +129,7 @@ future checks against deadlocks will be performed before terminating.
 
 Since most numerical algorithms repeat steps until some criterion such as the
 final time or convergence is met, SpECTRE's parallel components are designed to
-do such iterations for the user. An Algorithm executes an ordered list of
+do such iterations for the user. An algorithm executes an ordered list of
 actions until one of the actions cannot be evaluated, typically because it is
 waiting on data from elsewhere. When an algorithm can no longer evaluate actions
 it passively waits by handing control back to Charm++. Once an algorithm
@@ -217,7 +217,7 @@ array indices, the [Charm++ manual](http://charm.cs.illinois.edu/help) tells you
 to write your own `CkArrayIndex`, but we have written a general implementation
 that provides this functionality (see `Parallel::ArrayIndex`); all that you need
 to provide is a plain-old-data
-([POD](http://en.cppreference.com/w/cpp/concept/PODType)) struct of the size of
+([POD](http://en.cppreference.com/w/cpp/named_req/PODType)) struct of the size of
 at most 3 integers.
 
 %Parallel array components have a static `allocate_array` function
