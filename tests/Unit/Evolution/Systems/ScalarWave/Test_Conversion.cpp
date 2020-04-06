@@ -76,6 +76,8 @@ void test_conversion() noexcept {
 
   // check that after converting back and forth the result is the same
   CHECK_ITERABLE_APPROX(psi_in, psi_out);
+  CHECK_ITERABLE_APPROX(pi_in, pi_out);
+  CHECK_ITERABLE_APPROX(phi_in, phi_out);
 }
 
 SPECTRE_TEST_CASE("Unit.Evolution.Systems.ScalarWave.Conversion",
