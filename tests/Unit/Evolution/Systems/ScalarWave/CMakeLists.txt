@@ -6,6 +6,7 @@ set(LIBRARY "Test_ScalarWave")
 set(LIBRARY_SOURCES
   Test_Characteristics.cpp
   Test_Constraints.cpp
+  Test_Conversion.cpp
   Test_Equations.cpp
   )
 

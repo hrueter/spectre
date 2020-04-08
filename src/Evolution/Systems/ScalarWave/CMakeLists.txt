@@ -8,6 +8,7 @@ set(LIBRARY ScalarWave)
 set(LIBRARY_SOURCES
   Characteristics.cpp
   Constraints.cpp
+  Conversion.cpp
   Equations.cpp
   )
 
