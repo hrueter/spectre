@@ -135,12 +135,21 @@ void test_characteristic_fields(const size_t npts) noexcept {
       make_random_nonzero_vector<DataVector, Dim, UpLo::Up, Frame::Inertial>(
           nn_generator, npts, 0.001, 10.0);
   // Outward 3-normal to the surface on which characteristic fields are needed
-  const tnsr::i<DataVector, Dim, Frame::Inertial> unit_normal_one_form =
+  /*
+     const tnsr::i<DataVector, Dim, Frame::Inertial> unit_normal_one_form =
       make_random_nonzero_vector<DataVector, Dim, UpLo::Lo, Frame::Inertial>(
           nn_generator, npts, 0.1, 10.0);
 
+
   const auto gamma_2 =
       make_with_random_values<Scalar<DataVector>>(nn_generator, nn_dist, npts);
+*/
+  // SIMPLIFY FOR DEBUGGING
+  tnsr::i<DataVector, Dim, Frame::Inertial> unit_normal_one_form(npts);
+  for (size_t i = 0; i < Dim; i++) {
+    unit_normal_one_form.get(i) = x.get(i) / magnitude(x).get();
+  }
+  const auto gamma_2 = make_with_value<Scalar<DataVector>>(npts, 0.0);
 
   // generate standard fields
   const auto psi_standard =
@@ -155,10 +164,16 @@ void test_characteristic_fields(const size_t npts) noexcept {
   std::uniform_real_distribution<> non_negative_dist(0.0, 10.);
   const auto nn_non_negative_dist = make_not_null(&non_negative_dist);
 
+  /*
   const auto chi = make_with_random_values<Scalar<DataVector>>(
       nn_generator, nn_non_negative_dist, npts);
   const auto sigma = make_with_random_values<Scalar<DataVector>>(
       nn_generator, nn_non_negative_dist, npts);
+*/
+  // SIMPLIFY FOR DEBUGGING
+  const auto chi = make_with_value<Scalar<DataVector>>(npts, 1.0);
+  const auto sigma = make_with_value<Scalar<DataVector>>(npts, 0.0);
+
   const Scalar<DataVector> r = magnitude(x);
   tnsr::I<DataVector, Dim, Frame::Inertial> xhat = x;
   for (size_t i = 0; i < Dim; ++i) {
@@ -224,10 +239,15 @@ void test_characteristic_fields(const size_t npts) noexcept {
 
   std::cout << "chi: " << chi.get() << std::endl;
 
+  std::cout << "phiplus_radialvplus: " << phiplus_radialvplus.get()
+            << std::endl;
+
+  //***** THERE IS A CONFUSION WITH V+ and V- between the too systems!!! ****//
+
   // Compare characteristic fields
   CHECK_ITERABLE_APPROX(v_psi_standard, v_phi_radialvplus);
   CHECK_ITERABLE_APPROX(v_zero_standard, v_zero_radialvplus);
-  CHECK_ITERABLE_APPROX(v_plus_standard, v_plus_radialvplus);
+  CHECK_ITERABLE_APPROX(v_minus_standard, v_plus_radialvplus);
   // CHECK_ITERABLE_APPROX(v_minus_standard, v_minus_radialvplus);
 
   // get radialvplus evolved fields back from characteristic fields
