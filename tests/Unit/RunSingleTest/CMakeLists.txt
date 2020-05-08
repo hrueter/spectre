@@ -33,6 +33,11 @@ add_spectre_executable(
   # The following lines list the source files with tests in them to be
   # compiled into the executable.
   ../DataStructures/Test_DataVector.cpp
+  ../Evolution/Systems/ScalarWave/Test_Characteristics.cpp
+  ../Evolution/Systems/ScalarWave/Test_Constraints.cpp
+  ../Evolution/Systems/ScalarWave/Test_Conversion.cpp
+  ../Evolution/Systems/ScalarWave/Test_Equations.cpp
+  ../Evolution/Systems/ScalarWave/RadialVPlus/Test_Characteristics.cpp
   )
 
 # Modify which libraries to link for your test case.
@@ -40,6 +45,11 @@ target_link_libraries(
   ${EXECUTABLE}
   PRIVATE
   DataStructures
+  RadialVPlus
+  ScalarWave
+  WaveEquation
+  Domain
+  MathFunctions
   )
 
 # Core required libraries
