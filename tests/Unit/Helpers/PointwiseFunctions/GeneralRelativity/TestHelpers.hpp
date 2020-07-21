@@ -10,6 +10,7 @@
 #include <random>
 
 #include "DataStructures/Tensor/TypeAliases.hpp"
+#include "Utilities/GenerateInstantiations.hpp"
 
 /// \cond
 namespace gsl {
@@ -35,5 +36,20 @@ template <size_t Dim, typename DataType, typename Fr = Frame::Inertial>
 tnsr::ii<DataType, Dim, Fr> random_spatial_metric(
     gsl::not_null<std::mt19937*> generator,
     const DataType& used_for_size) noexcept;
+
+#define DTYPE(data) BOOST_PP_TUPLE_ELEM(0, data)
+#define DIM(data) BOOST_PP_TUPLE_ELEM(1, data)
+
+#define INSTANTIATE_TENSORS(_, data)                                      \
+  extern template tnsr::ii<DTYPE(data), DIM(data)> random_spatial_metric( \
+      const gsl::not_null<std::mt19937*> generator,                       \
+      const DTYPE(data) & used_for_size) noexcept;
+
+GENERATE_INSTANTIATIONS(INSTANTIATE_TENSORS, (double, DataVector), (1, 2, 3))
+
+#undef INSTANTIATE_TENSORS
+#undef DIM
+#undef DTYPE
+
 }  // namespace gr
 }  // namespace TestHelpers
