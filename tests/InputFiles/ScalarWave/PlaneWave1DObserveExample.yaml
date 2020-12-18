@@ -34,11 +34,11 @@ Evolution:
 
 DomainCreator:
   Interval:
-    LowerBound: [0.0]
-    UpperBound: [6.283185307179586]
+    LowerBound: [-10.0]
+    UpperBound: [0.0]
     IsPeriodicIn: [true]
-    InitialRefinement: [2]
-    InitialGridPoints: [7]
+    InitialRefinement: [0]
+    InitialGridPoints: [12]
 
 # If filtering is enabled in the executable the filter can be controlled using:
 # ExpFilter0:

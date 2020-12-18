@@ -1,15 +1,15 @@
 // Distributed under the MIT License.
 // See LICENSE.txt for details.
 
-#include "Framework/TestingFramework.hpp"
-
 #include <cmath>
 #include <cstddef>
+#include <iostream>
 #include <vector>
 
 #include "DataStructures/DataVector.hpp"
 #include "DataStructures/Matrix.hpp"
 #include "DataStructures/ModalVector.hpp"
+#include "Framework/TestingFramework.hpp"
 #include "NumericalAlgorithms/LinearOperators/CoefficientTransforms.hpp"
 #include "NumericalAlgorithms/Spectral/Filtering.hpp"
 #include "NumericalAlgorithms/Spectral/Mesh.hpp"
@@ -39,6 +39,12 @@ void test_exponential_filter(const double alpha, const unsigned half_power,
     DataVector filtered_nodal_coeffs(num_pts);
     const Matrix filter_matrix =
         Spectral::filtering::exponential_filter(mesh, alpha, half_power);
+
+    std::cout << std::setprecision(15) << filter_matrix << std::endl;
+
+    std::cout << "alpha  " << alpha << "    half power  " << half_power
+              << std::endl;
+
     dgemv_('N', num_pts, num_pts, 1., filter_matrix.data(),
            filter_matrix.spacing(), initial_nodal_coeffs.data(), 1, 0.0,
            filtered_nodal_coeffs.data(), 1);
@@ -61,22 +67,22 @@ void test_exponential_filter(const double alpha, const unsigned half_power,
 
 SPECTRE_TEST_CASE("Unit.Numerical.Spectral.ExponentialFilter",
                   "[NumericalAlgorithms][Spectral][Unit]") {
-  const std::vector<double> alphas{10.0, 20.0, 30.0, 40.0};
-  const std::vector<unsigned> half_powers{2, 4, 8, 16};
+  const std::vector<double> alphas{36.0};
+  const std::vector<unsigned> half_powers{32};
   for (const double alpha : alphas) {
     for (const unsigned half_power : half_powers) {
       test_exponential_filter<Spectral::Basis::Legendre,
                               Spectral::Quadrature::GaussLobatto>(
-          alpha, half_power, 2.0e-14);
-      test_exponential_filter<Spectral::Basis::Legendre,
-                              Spectral::Quadrature::Gauss>(alpha, half_power,
-                                                           1.0e-12);
-      test_exponential_filter<Spectral::Basis::Chebyshev,
-                              Spectral::Quadrature::GaussLobatto>(
-          alpha, half_power, 2.0e-14);
-      test_exponential_filter<Spectral::Basis::Chebyshev,
-                              Spectral::Quadrature::Gauss>(alpha, half_power,
-                                                           1.0e-12);
+          alpha, half_power, 2.0e-14); /*
+       test_exponential_filter<Spectral::Basis::Legendre,
+                               Spectral::Quadrature::Gauss>(alpha, half_power,
+                                                            1.0e-12);
+       test_exponential_filter<Spectral::Basis::Chebyshev,
+                               Spectral::Quadrature::GaussLobatto>(
+           alpha, half_power, 2.0e-14);
+       test_exponential_filter<Spectral::Basis::Chebyshev,
+                               Spectral::Quadrature::Gauss>(alpha, half_power,
+                                                            1.0e-12);*/
     }
   }
 }
