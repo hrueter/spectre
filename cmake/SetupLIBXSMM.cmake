@@ -13,31 +13,19 @@ if (NOT LIBXSMM_FOUND)
   # This FetchContent code is adapted from the libxsmm docs:
   # https://libxsmm.readthedocs.io/en/latest/#rules-for-building-libxsmm
   include(FetchContent)
-  # Need an unreleased version for Apple Silicon chips
-  if (APPLE AND ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64"
-                OR "${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "aarch64"))
-    FetchContent_Declare(xsmm
-      GIT_REPOSITORY https://github.com/libxsmm/libxsmm.git
-      GIT_TAG 939f11042fc9ae4bbe975cedb2330d4f9f4bb26e
-      ${SPECTRE_FETCHCONTENT_BASE_ARGS}
-    )
-  else()
-    FetchContent_Declare(xsmm
-      URL https://github.com/libxsmm/libxsmm/archive/1.16.1.tar.gz
-      ${SPECTRE_FETCHCONTENT_BASE_ARGS}
-    )
-  endif()
-  FetchContent_GetProperties(xsmm)
-  if(NOT xsmm_POPULATED)
-    FetchContent_Populate(xsmm)
-  endif()
+  # Need an unreleased version to be compatible with newer glibc versions
+  FetchContent_Declare(xsmm
+    GIT_REPOSITORY https://github.com/libxsmm/libxsmm.git
+    GIT_TAG 10b7dc82b3c46157e76eb40e4e959555f895b24d
+    ${SPECTRE_FETCHCONTENT_BASE_ARGS}
+  )
+  FetchContent_MakeAvailable(xsmm)
 
   set(LIBXSMMROOT ${xsmm_SOURCE_DIR})
   file(GLOB _GLOB_XSMM_SRCS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${LIBXSMMROOT}/src/*.c)
   list(REMOVE_ITEM _GLOB_XSMM_SRCS ${LIBXSMMROOT}/src/libxsmm_generator_gemm_driver.c)
   set(XSMM_INCLUDE_DIRS ${LIBXSMMROOT}/include)
 
-  add_library(xsmm STATIC ${_GLOB_XSMM_SRCS})
   target_include_directories(xsmm SYSTEM PUBLIC ${XSMM_INCLUDE_DIRS})
   target_compile_definitions(xsmm PUBLIC LIBXSMM_DEFAULT_CONFIG)
 
