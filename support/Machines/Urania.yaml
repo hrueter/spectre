@@ -5,7 +5,7 @@ Machine:
   Name: Urania
   Description: |
     Supercomputer at the Max Planck Computing Data Facilty.
-  DefaultProcsPerNode: 72
+  DefaultTasksPerNode: 72
   DefaultQueue: "p.urania"
   DefaultTimeLimit: "1-00:00:00"
   LaunchCommandSingleNode: ["srun", "-n", "1"]

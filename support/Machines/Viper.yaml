@@ -5,7 +5,7 @@ Machine:
   Name: Viper
   Description: |
     Supercomputer at the Max Planck Computing Data Facilty.
-  DefaultProcsPerNode: 128
+  DefaultTasksPerNode: 128
   DefaultQueue: "p.general"
   DefaultTimeLimit: "1-00:00:00"
   LaunchCommandSingleNode: ["srun", "-n", "1"]
