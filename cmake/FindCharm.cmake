@@ -409,6 +409,14 @@ if (CHARM_USE_MPI)
   target_link_libraries(Charmxx::charmxx INTERFACE MPI::MPI_CXX)
 endif()
 
+#if (CHARM_CXX MATCHES ".*ucx.*")
+set(CHARM_USE_UCX ON)
+#endif()
+if (CHARM_USE_UCX)
+  find_package(UCX REQUIRED)
+  target_link_libraries(Charmxx::charmxx INTERFACE)
+endif()
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
   Charm
