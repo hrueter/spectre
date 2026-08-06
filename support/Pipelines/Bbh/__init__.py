@@ -2,64 +2,64 @@
 # See LICENSE.txt for details.
 
 import click
-
-from spectre.support.CliExceptions import RequiredChoiceError
-
+import importlib
 
 # Load subcommands lazily, i.e., only import the module when the subcommand is
 # invoked. This is important so the CLI responds quickly.
-class Bbh(click.Group):
+class LazyGroup(click.Group):
+    def __init__(self, *args, lazy_subcommands=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # lazy_subcommands is a map of the form:
+        #
+        #   {command-name} -> {module-name}.{command-object-name}
+        #
+        self.lazy_subcommands = lazy_subcommands or {}
+
     def list_commands(self, ctx):
-        return [
-            "eccentricity-control",
-            "find-horizon",
-            "generate-id",
-            "postprocess-id",
-            "start-inspiral",
-            "start-ringdown",
-            "run-cce",
-        ]
+        base = super().list_commands(ctx)
+        lazy = sorted(self.lazy_subcommands.keys())
+        return base + lazy
 
-    def get_command(self, ctx, name):
-        if name in ["eccentricity-control", "ecc-control"]:
-            from .EccentricityControl import eccentricity_control_command
+    def get_command(self, ctx, cmd_name):
+        if cmd_name in self.lazy_subcommands:
+            return self._lazy_load(cmd_name)
+        return super().get_command(ctx, cmd_name)
 
-            return eccentricity_control_command
-        elif name == "find-horizon":
-            from .FindHorizon import find_horizon_command
-
-            return find_horizon_command
-        elif name == "generate-id":
-            from .InitialData import generate_id_command
-
-            return generate_id_command
-        elif name == "postprocess-id":
-            from .PostprocessId import postprocess_id_command
-
-            return postprocess_id_command
-        elif name == "start-inspiral":
-            from .Inspiral import start_inspiral_command
-
-            return start_inspiral_command
-        elif name == "start-ringdown":
-            from .Ringdown import start_ringdown_command
-
-            return start_ringdown_command
-        elif name in ["run-cce", "start-cce"]:
-            from .Cce import run_cce_command
-
-            return run_cce_command
-        raise RequiredChoiceError(
-            f"The command '{name}' is not implemented.",
-            choices=self.list_commands(ctx),
-        )
+    def _lazy_load(self, cmd_name):
+        # lazily loading a command, first get the module name and attribute name
+        import_path = self.lazy_subcommands[cmd_name]
+        modname, cmd_object_name = import_path.rsplit(".", 1)
+        # do the import
+        mod = importlib.import_module(__name__+"."+modname)
+        # get the Command object from that module
+        cmd_object = getattr(mod, cmd_object_name)
+        # check the result to make debugging easier
+        if not isinstance(cmd_object, click.Command):
+            raise ValueError(
+                f"Lazy loading of {import_path} failed by returning "
+                "a non-command object"
+            )
+        return cmd_object
 
 
-@click.group(name="bbh", cls=Bbh)
+@click.group(
+    name="bbh",
+    cls=LazyGroup,
+    # for each command provide the path relative to this module
+    lazy_subcommands={
+      "eccentricity-control":
+        "EccentricityControl.eccentricity_control_command",
+      "find-horizon": "FindHorizon.find_horizon_command",
+      "generate-id": "InitialData.generate_id_command",
+      "postprocess-id": "PostprocessId.postprocess_id_command",
+      "start-inspiral": "Inspiral.start_inspiral_command",
+      "start-ringdown": "Ringdown.start_ringdown_command",
+      "run-cce": "Cce.run_cce_command",
+    },
+    help="Pipeline for binary black hole simulations.",
+)
 def bbh_pipeline():
-    """Pipeline for binary black hole simulations."""
     pass
-
 
 if __name__ == "__main__":
     bbh_pipeline(help_option_names=["-h", "--help"])
